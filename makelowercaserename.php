@@ -15,6 +15,8 @@ class MakeLowerCaseRename {
 
 	public function __construct(array $argv) {
 
+		$this->mvCmd = getenv("MVCMD") ?: "mv";
+
 		// validate source path
 		if (!isset($argv[1])) {
 			$this->writeLine('Please specify source directory',true);
@@ -73,7 +75,8 @@ class MakeLowerCaseRename {
 		// build move command
 		$sourceDirLen = strlen($this->sourceDir);
 		$this->writeLine(sprintf(
-			'mv "$SOURCEDIR%s" "$SOURCEDIR%s/%s"',
+			'%s "$SOURCEDIR%s" "$SOURCEDIR%s/%s"',
+			$this->mvCmd,
 			$this->escapeFilePath(substr($fileItemPath,$sourceDirLen)),
 			$this->escapeFilePath(substr(dirname($fileItemPath),$sourceDirLen)),
 			$this->escapeFilePath($filenameLower)
