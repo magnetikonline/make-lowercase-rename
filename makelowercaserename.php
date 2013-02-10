@@ -1,10 +1,10 @@
 #!/usr/bin/env php
 <?php
-// makelowercasefilenamerename.php
+// makelowercaserename.php
 
 
 
-class MakeLowerCaseFilenameRename {
+class MakeLowerCaseRename {
 
 	const LE = "\n";
 
@@ -92,4 +92,4 @@ class MakeLowerCaseFilenameRename {
 }
 
 
-new MakeLowerCaseFilenameRename($argv);
+new MakeLowerCaseRename($argv);
