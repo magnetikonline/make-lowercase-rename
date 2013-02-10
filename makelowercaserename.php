@@ -60,6 +60,7 @@ class MakeLowerCaseRename {
 
 		// extract filename component and check if can be lowercased, otherwise exit
 		$filename = basename($fileItemPath);
+		$dirname = dirname($fileItemPath);
 		$filenameLower = strtolower($filename);
 		if ($filename == $filenameLower) return;
 
@@ -70,11 +71,20 @@ class MakeLowerCaseRename {
 			$this->writtenHeader = true;
 		}
 
+		$underscores = "_";
+		while(file_exists($fileItemPath . $underscores))
+			$underscores .= "_";
+
 		// build move command
 		$sourceDirLen = strlen($this->sourceDir);
 		$this->writeLine(sprintf(
-			'mv "$SOURCEDIR/%s" "$SOURCEDIR/%s/%s"',
+			'mv "$SOURCEDIR/%s" "$SOURCEDIR/%s"',
 			$this->escapeFilePath(substr($fileItemPath,$sourceDirLen)),
+			$this->escapeFilePath(substr($fileItemPath,$sourceDirLen).$underscores)
+		));
+		$this->writeLine(sprintf(
+			'mv "$SOURCEDIR/%s" "$SOURCEDIR/%s/%s"',
+			$this->escapeFilePath(substr($fileItemPath,$sourceDirLen).$underscores),
 			$this->escapeFilePath(substr(dirname($fileItemPath),$sourceDirLen)),
 			$this->escapeFilePath($filenameLower)
 		));
