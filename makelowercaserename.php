@@ -73,7 +73,7 @@ class MakeLowerCaseRename {
 		// build move command
 		$sourceDirLen = strlen($this->sourceDir);
 		$this->writeLine(sprintf(
-			'mv "$SOURCEDIR%s" "$SOURCEDIR%s/%s"',
+			'mv "$SOURCEDIR/%s" "$SOURCEDIR/%s/%s"',
 			$this->escapeFilePath(substr($fileItemPath,$sourceDirLen)),
 			$this->escapeFilePath(substr(dirname($fileItemPath),$sourceDirLen)),
 			$this->escapeFilePath($filenameLower)
