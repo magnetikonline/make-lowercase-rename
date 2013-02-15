@@ -7,10 +7,12 @@
 class MakeLowerCaseRename {
 
 	const LE = "\n";
+	const MV_COMMAND_SPRINTF = '%s "$SOURCEDIR%s" "$SOURCEDIR%s/%s"';
 
 	private $sourceDir = '';
-	private $writtenHeader = false;
+	private $writtenBashHeader = false;
 	private $mvCommand = 'mv';
+	private $mvTemp = false;
 
 
 
@@ -24,8 +26,19 @@ class MakeLowerCaseRename {
 
 		$this->sourceDir = rtrim($argv[1],'/');
 		if (!is_dir($this->sourceDir)) {
+			// can't find source directory
 			$this->writeLine('Source directory \'' . $this->sourceDir . '\' not found or invalid',true);
 			return;
+		}
+
+		if (isset($argv[2])) {
+			if ($argv[2] != 'movetemp') {
+				$this->writeLine('Second optional parameter can only be \'movetemp\'',true);
+				return;
+			}
+
+			// enable move to a temp file first then back to target
+			$this->mvTemp = true;
 		}
 
 		// set custom mv command (if given in env) and work source directory
@@ -67,19 +80,36 @@ class MakeLowerCaseRename {
 		if ($filename == $filenameLower) return;
 
 		// has bash header been written?
-		if (!$this->writtenHeader) {
+		if (!$this->writtenBashHeader) {
 			$this->writeLine('#!/bin/bash');
 			$this->writeLine('SOURCEDIR="' . $this->escapeFilePath($this->sourceDir) . '"');
-			$this->writtenHeader = true;
+			$this->writtenBashHeader = true;
 		}
 
 		// build move command
 		$sourceDirLen = strlen($this->sourceDir);
+		$sourcePathTail = $this->escapeFilePath(substr($fileItemPath,$sourceDirLen));
+		$targetDirTail = $this->escapeFilePath(substr(dirname($fileItemPath),$sourceDirLen));
+		$uniqTarget = '';
+
+		if ($this->mvTemp) {
+			// move source file to an temp target first before rename - fixes broken filesystems (e.g. FAT32)
+			while (file_exists($fileItemPath . $uniqTarget)) $uniqTarget .= '_';
+
+			$this->writeLine(sprintf(
+				self::MV_COMMAND_SPRINTF,
+				$this->mvCommand,
+				$sourcePathTail,
+				$targetDirTail,
+				$this->escapeFilePath($filename) . $uniqTarget
+			));
+		}
+
 		$this->writeLine(sprintf(
-			'%s "$SOURCEDIR%s" "$SOURCEDIR%s/%s"',
+			self::MV_COMMAND_SPRINTF,
 			$this->mvCommand,
-			$this->escapeFilePath(substr($fileItemPath,$sourceDirLen)),
-			$this->escapeFilePath(substr(dirname($fileItemPath),$sourceDirLen)),
+			$sourcePathTail . $uniqTarget,
+			$targetDirTail,
 			$this->escapeFilePath($filenameLower)
 		));
 	}

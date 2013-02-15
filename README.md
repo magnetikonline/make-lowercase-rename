@@ -16,8 +16,10 @@ As you can probably gather, this will be little to *zero* use for anyone else.
 Tested under PHP 5.4.10.
 
 ## Usage
-	./makelowercaserename.php /directory/to/files/ > outbash.sh
+**Note:** The second optional parameter `movetemp` will first move the source file to a temp filename, then back to it's final lowercased filename. This defeats issues with broken filesystems, such as FAT32.
+
+	./makelowercaserename.php /directory/to/files/ [movetemp] > outbash.sh
 
 Or use an alternative command for `mv`, e.g.
 
-	MVCMD="git mv" ./makelowercaserename.php /directory/to/files/ > outbash.sh
+	MVCMD="git mv" ./makelowercaserename.php /directory/to/files/ [movetemp] > outbash.sh
