@@ -1,11 +1,11 @@
-# Make lower case rename
+# Make lowercase rename
 A quick, dirty and *hacky* PHP script (with a terrible project name).
 
-Given a source directory, spits out to the console a bash script to recursively rename upper case filenames to lower cased versions - basically a bunch of `mv "sourcefile" "sourcefilelowercase"` commands.
+Given a source directory, spits out to the console a bash script to recursively rename uppercase filenames to lowercased versions - basically a bunch of `mv "sourcefile" "sourcefilelowercase"` commands. It **will not** modify directories, only the files within.
 
-Something I needed to lower case around 30,000 digital camera images on a NAS drive which has a rather limited toolchain (BusyBox).
+Something I needed to lowercase around 30,000 digital camera images on a NAS drive which has a rather limited toolchain (BusyBox).
 
-I'm sure I could have done this directly on the NAS using what was available, but was easier/quicker to:
+I'm sure I could have done this directly on the NAS using bash, but it proved easier/quicker to:
 - Cobble this together
 - Run script over NFS share to the files in question
 - SCP result over to NAS as bash script
@@ -13,5 +13,11 @@ I'm sure I could have done this directly on the NAS using what was available, bu
 
 As you can probably gather, this will be little to *zero* use for anyone else.
 
+Tested under PHP 5.4.10.
+
 ## Usage
-`./makelowercaserename.php [directory-to-files] > outbash.sh`
+	./makelowercaserename.php /directory/to/files/ > outbash.sh
+
+Or use an alternative command for `mv`, e.g.
+
+	MVCMD="git mv" ./makelowercaserename.php /directory/to/files/ > outbash.sh

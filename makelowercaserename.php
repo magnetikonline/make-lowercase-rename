@@ -10,6 +10,7 @@ class MakeLowerCaseRename {
 
 	private $sourceDir = '';
 	private $writtenHeader = false;
+	private $mvCommand = 'mv';
 
 
 
@@ -27,6 +28,8 @@ class MakeLowerCaseRename {
 			return;
 		}
 
+		// set custom mv command (if given in env) and work source directory
+		$this->mvCommand = trim((getenv('MVCMD')) ?: $this->mvCommand);
 		$this->workDir();
 	}
 
@@ -73,7 +76,8 @@ class MakeLowerCaseRename {
 		// build move command
 		$sourceDirLen = strlen($this->sourceDir);
 		$this->writeLine(sprintf(
-			'mv "$SOURCEDIR%s" "$SOURCEDIR%s/%s"',
+			'%s "$SOURCEDIR%s" "$SOURCEDIR%s/%s"',
+			$this->mvCommand,
 			$this->escapeFilePath(substr($fileItemPath,$sourceDirLen)),
 			$this->escapeFilePath(substr(dirname($fileItemPath),$sourceDirLen)),
 			$this->escapeFilePath($filenameLower)
