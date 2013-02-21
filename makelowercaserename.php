@@ -1,9 +1,5 @@
 #!/usr/bin/env php
 <?php
-// makelowercaserename.php
-
-
-
 class MakeLowerCaseRename {
 
 	const LE = "\n";
@@ -13,7 +9,6 @@ class MakeLowerCaseRename {
 	private $writtenBashHeader = false;
 	private $mvCommand = 'mv';
 	private $mvTemp = false;
-
 
 
 	public function __construct(array $argv) {
