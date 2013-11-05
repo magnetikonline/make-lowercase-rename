@@ -64,7 +64,6 @@ class MakeLowerCaseRename {
 
 		// close directory handle
 		closedir($dirHandle);
-		return;
 	}
 
 	private function emitRenameCommand($fileItemPath) {
