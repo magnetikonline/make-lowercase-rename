@@ -2,16 +2,16 @@
 <?php
 class MakeLowerCaseRename {
 
-	const LE = "\n";
-	const MV_COMMAND_SPRINTF = '%s "$SOURCEDIR%s" "$SOURCEDIR%s/%s"';
+	const MV_CMD_SPRINTF = '%s "$SOURCEDIR%s" "$SOURCEDIR%s/%s"';
+	const MV_CMD_DEFAULT = 'mv';
 
 	private $sourceDir = '';
 	private $writtenBashHeader = false;
-	private $mvCommand = 'mv';
+	private $mvCommand = self::MV_CMD_DEFAULT;
 	private $mvTemp = false;
 
 
-	public function __construct(array $argv) {
+	public function execute(array $argv) {
 
 		// validate source path
 		if (!isset($argv[1])) {
@@ -91,7 +91,7 @@ class MakeLowerCaseRename {
 			while (file_exists($fileItemPath . $uniqTarget)) $uniqTarget .= '_';
 
 			$this->writeLine(sprintf(
-				self::MV_COMMAND_SPRINTF,
+				self::MV_CMD_SPRINTF,
 				$this->mvCommand,
 				$sourcePathTail,
 				$targetDirTail,
@@ -100,7 +100,7 @@ class MakeLowerCaseRename {
 		}
 
 		$this->writeLine(sprintf(
-			self::MV_COMMAND_SPRINTF,
+			self::MV_CMD_SPRINTF,
 			$this->mvCommand,
 			$sourcePathTail . $uniqTarget,
 			$targetDirTail,
@@ -115,9 +115,9 @@ class MakeLowerCaseRename {
 
 	private function writeLine($text = '',$isError = false) {
 
-		echo((($isError) ? 'Error: ' : '') . $text . self::LE);
+		echo((($isError) ? 'Error: ' : '') . $text . "\n");
 	}
 }
 
 
-new MakeLowerCaseRename($argv);
+(new MakeLowerCaseRename())->execute($argv);
