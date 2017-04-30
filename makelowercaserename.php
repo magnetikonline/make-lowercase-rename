@@ -27,8 +27,8 @@ class MakeLowerCaseRename {
 		}
 
 		if (isset($argv[2])) {
-			if ($argv[2] != 'movetemp') {
-				$this->writeLine('Second optional parameter can only be \'movetemp\'',true);
+			if ($argv[2] != '--move-temp') {
+				$this->writeLine('Second optional parameter can only be \'--move-temp\'',true);
 				return;
 			}
 
@@ -48,7 +48,10 @@ class MakeLowerCaseRename {
 
 		while (($fileItem = readdir($dirHandle)) !== false) {
 			// skip current/parent directories
-			if (($fileItem == '.') || ($fileItem == '..')) continue;
+			if (
+				($fileItem == '.') ||
+				($fileItem == '..')
+			) continue;
 
 			$fileItemPath = $this->sourceDir . $childDir . '/' . $fileItem;
 
@@ -70,13 +73,21 @@ class MakeLowerCaseRename {
 
 		// extract filename component and check if can be lowercased, otherwise exit
 		$filename = basename($fileItemPath);
+
 		$filenameLower = strtolower($filename);
-		if ($filename == $filenameLower) return;
+		if ($filename == $filenameLower) {
+			// no work
+			return;
+		}
 
 		// has bash header been written?
 		if (!$this->writtenBashHeader) {
-			$this->writeLine('#!/bin/bash');
+			$this->writeLine('#!/bin/bash -e');
+			$this->writeLine();
 			$this->writeLine('SOURCEDIR="' . $this->escapeFilePath($this->sourceDir) . '"');
+			$this->writeLine();
+			$this->writeLine();
+
 			$this->writtenBashHeader = true;
 		}
 
