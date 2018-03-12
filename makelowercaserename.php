@@ -2,7 +2,6 @@
 <?php
 class MakeLowerCaseRename {
 
-	const MV_CMD_SPRINTF = '%s "$SOURCEDIR%s" "$SOURCEDIR%s/%s"';
 	const MV_CMD_DEFAULT = 'mv';
 
 	private $sourceDir = '';
@@ -15,21 +14,18 @@ class MakeLowerCaseRename {
 
 		// validate source path
 		if (!isset($argv[1])) {
-			$this->writeLine('Please specify source directory',true);
-			return;
+			$this->exitError('Please specify source directory');
 		}
 
 		$this->sourceDir = rtrim($argv[1],'/');
 		if (!is_dir($this->sourceDir)) {
 			// can't find source directory
-			$this->writeLine('Source directory \'' . $this->sourceDir . '\' not found or invalid',true);
-			return;
+			$this->exitError(sprintf('Source directory [%s] not found or invalid',$this->sourceDir));
 		}
 
 		if (isset($argv[2])) {
 			if ($argv[2] != '--move-temp') {
-				$this->writeLine('Second optional parameter can only be \'--move-temp\'',true);
-				return;
+				$this->exitError('Second optional parameter can only be \'--move-temp\'');
 			}
 
 			// enable move to a temp file first then back to target
@@ -44,7 +40,9 @@ class MakeLowerCaseRename {
 	private function workDir($childDir = '') {
 
 		$dirHandle = @opendir($this->sourceDir . $childDir);
-		if ($dirHandle === false) return;
+		if ($dirHandle === false) {
+			return;
+		}
 
 		while (($fileItem = readdir($dirHandle)) !== false) {
 			// skip current/parent directories
@@ -53,11 +51,11 @@ class MakeLowerCaseRename {
 				($fileItem == '..')
 			) continue;
 
-			$fileItemPath = $this->sourceDir . $childDir . '/' . $fileItem;
+			$fileItemPath = sprintf('%s%s/%s',$this->sourceDir,$childDir,$fileItem);
 
 			if (is_dir($fileItemPath)) {
 				// file is a directory, call $this->workDir() recursively
-				$this->workDir($childDir . '/' . $fileItem);
+				$this->workDir(sprintf('%s/%s',$childDir,$fileItem));
 				continue;
 			}
 
@@ -73,50 +71,72 @@ class MakeLowerCaseRename {
 
 		// extract filename component and check if can be lowercased, otherwise exit
 		$filename = basename($fileItemPath);
-
 		$filenameLower = strtolower($filename);
 		if ($filename == $filenameLower) {
 			// no work
 			return;
 		}
 
-		// has bash header been written?
+		// create bash header
 		if (!$this->writtenBashHeader) {
 			$this->writeLine('#!/bin/bash -e');
 			$this->writeLine();
-			$this->writeLine('SOURCEDIR="' . $this->escapeFilePath($this->sourceDir) . '"');
+			$this->writeLine('SOURCE_DIR="' . $this->escapeFilePath($this->sourceDir) . '"');
 			$this->writeLine();
-			$this->writeLine();
+
+			$this->writeLine(
+<<<EOT
+function lowerIt {
+
+	local sourceFile="\$SOURCE_DIR\$1"
+	local targetFile="\$SOURCE_DIR\$2"
+	if [[ -f \$targetFile ]]; then
+		echo "Notice: Target [\$targetFile] already exists - skipping"
+		return
+	fi
+
+	if [[ -n \$3 ]]; then
+		mv "\$sourceFile" "\$sourceFile\$3"
+		sourceFile+=\$3
+	fi
+
+	$this->mvCommand "\$sourceFile" "\$targetFile"
+}
+
+EOT
+			);
 
 			$this->writtenBashHeader = true;
 		}
 
 		// build move command
-		$sourceDirLen = strlen($this->sourceDir);
-		$sourcePathTail = $this->escapeFilePath(substr($fileItemPath,$sourceDirLen));
-		$targetDirTail = $this->escapeFilePath(substr(dirname($fileItemPath),$sourceDirLen));
 		$uniqTarget = '';
-
 		if ($this->mvTemp) {
-			// move source file to an temp target first before rename - fixes broken filesystems (e.g. FAT32)
-			while (file_exists($fileItemPath . $uniqTarget)) $uniqTarget .= '_';
-
-			$this->writeLine(sprintf(
-				self::MV_CMD_SPRINTF,
-				$this->mvCommand,
-				$sourcePathTail,
-				$targetDirTail,
-				$this->escapeFilePath($filename) . $uniqTarget
-			));
+			// move source file to an temp target first before rename - defeats broken filesystems (e.g. FAT32)
+			while (file_exists($fileItemPath . $uniqTarget)) {
+				$uniqTarget .= '_';
+			}
 		}
 
-		$this->writeLine(sprintf(
-			self::MV_CMD_SPRINTF,
-			$this->mvCommand,
-			$sourcePathTail . $uniqTarget,
-			$targetDirTail,
-			$this->escapeFilePath($filenameLower)
+		$sourcePathTail = $this->escapeFilePath(substr(
+			$fileItemPath,
+			strlen($this->sourceDir)
 		));
+
+		$sourcePathTailDir = dirname($sourcePathTail);
+
+		$this->writeLine(sprintf(
+			'lowerIt "%s" "%s%s" %s',
+			$sourcePathTail,
+			($sourcePathTailDir != '/')
+				? $sourcePathTailDir .= '/'
+				: $sourcePathTailDir,
+			$this->escapeFilePath($filenameLower),
+			($uniqTarget != '')
+				? sprintf('"%s"',$uniqTarget)
+				: ''
+		));
+
 	}
 
 	private function escapeFilePath($path) {
@@ -124,9 +144,15 @@ class MakeLowerCaseRename {
 		return str_replace('"','\"',$path);
 	}
 
-	private function writeLine($text = '',$isError = false) {
+	private function writeLine($text = '') {
 
-		echo((($isError) ? 'Error: ' : '') . $text . "\n");
+		echo($text . "\n");
+	}
+
+	private function exitError($message) {
+
+		fwrite(STDERR,sprintf("Error: %s\n",$message));
+		exit(1);
 	}
 }
 
