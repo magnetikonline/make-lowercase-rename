@@ -1,7 +1,6 @@
 #!/usr/bin/env php
 <?php
 class MakeLowerCaseRename {
-
 	const MV_CMD_DEFAULT = 'mv';
 
 	private $sourceDir = '';
@@ -11,7 +10,6 @@ class MakeLowerCaseRename {
 
 
 	public function execute(array $argv) {
-
 		// validate source path
 		if (!isset($argv[1])) {
 			$this->exitError('Please specify source directory');
@@ -38,7 +36,6 @@ class MakeLowerCaseRename {
 	}
 
 	private function workDir($childDir = '') {
-
 		$dirHandle = @opendir($this->sourceDir . $childDir);
 		if ($dirHandle === false) {
 			return;
@@ -68,7 +65,6 @@ class MakeLowerCaseRename {
 	}
 
 	private function emitRenameCommand($fileItemPath) {
-
 		// extract filename component and check if can be lowercased, otherwise exit
 		$filename = basename($fileItemPath);
 		$filenameLower = strtolower($filename);
@@ -87,7 +83,6 @@ class MakeLowerCaseRename {
 			$this->writeLine(
 <<<EOT
 function lowerIt {
-
 	local sourceFile="\$SOURCE_DIR\$1"
 	local targetFile="\$SOURCE_DIR\$2"
 	if [[ -f \$targetFile ]]; then
@@ -140,17 +135,14 @@ EOT
 	}
 
 	private function escapeFilePath($path) {
-
 		return str_replace('"','\"',$path);
 	}
 
 	private function writeLine($text = '') {
-
 		echo($text . "\n");
 	}
 
 	private function exitError($message) {
-
 		fwrite(STDERR,sprintf("Error: %s\n",$message));
 		exit(1);
 	}
